@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "isolatedModules": false, // Change this to false
+    "jsx": "react-jsx" // Ensure this is set for React
+  },
+}
