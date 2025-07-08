@@ -15,7 +15,7 @@ const Card = ({ pokemon }: { pokemon: Pokemon }) => {
          <h1 className='text-xl'>
             {formatName(pokemon.name)}
          </h1>
-         <p className='text-sm text-neutral-600'>#{pokemon.id}</p>
+         <p className='text-sm text-neutral-600'>#{pokemon.id.toString().padStart(3, '0')}</p>
       </div>
    )
 }

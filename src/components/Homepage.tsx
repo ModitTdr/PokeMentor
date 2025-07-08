@@ -16,6 +16,7 @@ interface PokemonOverview {
 }
 
 const fetchPokemon = async (url: string): Promise<PokemonOverview> => {
+   await new Promise(resolve => setTimeout(resolve, 100));
    const response = await fetch(url);
    if (!response.ok) throw new Error("Failed to fetch pokemon");
    return response.json();
@@ -42,7 +43,7 @@ const Homepage = () => {
       .filter((q) => q.isSuccess)
       .map((q) => q.data)
    return (
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
          {
             pokemonData.map((pokemon) => (
                <Link to={`/${pokemon.name}`} key={pokemon.id}>

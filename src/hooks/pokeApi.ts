@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-const API = "https://pokeapi.co/api/v2/pokemon?limit=20"
+const API = "https://pokeapi.co/api/v2/pokemon?limit=150"
 
 export interface PokemonListResult {
    name: string,
