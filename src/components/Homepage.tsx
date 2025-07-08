@@ -1,68 +1,57 @@
-import { useEffect, useState } from 'react'
-import pokeApi from '../pokeApi'
-import Card from './Card';
-import { Link } from 'react-router-dom';
+import { useQueries, type UseQueryResult } from "@tanstack/react-query";
+import pokeApi from "../hooks/pokeApi";
+import Card from "./Card";
+import { Link } from "react-router-dom";
 
-interface PokemonSprites {
-   front_default: string;
+interface PokemonListResult {
+   name: string;
+   url: string;
 }
 interface PokemonOverview {
    id: number;
    name: string;
-   sprites: PokemonSprites;
+   sprites: {
+      front_default: string;
+   };
+}
+
+const fetchPokemon = async (url: string): Promise<PokemonOverview> => {
+   const response = await fetch(url);
+   if (!response.ok) throw new Error("Failed to fetch pokemon");
+   return response.json();
 }
 
 const Homepage = () => {
-   const [pokemons, setPokemons] = useState<PokemonOverview[]>([]);
-   const [Loading, setLoading] = useState(true);
-   const [input, setInput] = useState('');
+   const { data, isLoading, isError } = pokeApi();
+   const query = useQueries({
+      queries: (data?.results || []).map((item: PokemonListResult) => ({
+         queryKey: ['pokemonDetail', item.url],
+         queryFn: () => fetchPokemon(item.url),
+         staleTime: 1000 * 60 * 5,
+         enabled: !!data?.results,
+      })) || [],
+   }) as UseQueryResult<PokemonOverview>[];
 
-   useEffect(() => {
-      const getPokemonData = async () => {
-         setPokemons(await pokeApi.getAll());
-         setLoading(false);
-      }
-      getPokemonData();
-   }, [])
-
-   const searchPokemons = pokemons?.filter((pokemon) => {
-      return pokemon.name.toLowerCase().includes(input.toLowerCase());
-   })
-
-   if (Loading) {
-      return (
-         <div className='flex justify-center items-center h-screen'>
-            <h1 className='text-3xl'>Loading...</h1>
-         </div>
-      )
+   if (isLoading) {
+      return <h1>Loading...</h1>
    }
-
+   if (isError) {
+      return <h1>Error...</h1>
+   }
+   const pokemonData = query
+      .filter((q) => q.isSuccess)
+      .map((q) => q.data)
    return (
-      <div className='container p-4 flex justify-center container mx-auto'>
-         <div className='space-y-6 bg-red-600 p-8 rounded-2xl drop-shadow-2xl border border-neutral-400'>
-            <div className='text-center space-y-4'>
-               <h1 className='text-7xl font-bold text-yellow-400 text-stroke-3 text-stroke-blue-500'>PokeDex</h1>
-               <input
-                  type="text"
-                  placeholder="Search Pokemon... [E.g: Charizard]"
-                  className="border-2 border-neutral-900 rounded-lg px-4 py-1 w-full"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-               />
-            </div>
-
-            <div className='p-4 bg-neutral-300 border border-neutral-400 shadow-xl rounded-lg grid grid-cols-6 gap-4'>
-               {
-                  searchPokemons?.map((pokemon) => (
-                     <Link to={`/${pokemon.name}`} key={pokemon.id}>
-                        <Card pokemon={pokemon} />
-                     </Link>
-                  ))
-               }
-            </div>
-         </div>
+      <div className="grid grid-cols-4 gap-4">
+         {
+            pokemonData.map((pokemon) => (
+               <Link to={`/${pokemon.name}`} key={pokemon.id}>
+                  <Card pokemon={pokemon} />
+               </Link>
+            ))
+         }
       </div>
-   )
-}
+   );
+};
 
-export default Homepage
+export default Homepage;
